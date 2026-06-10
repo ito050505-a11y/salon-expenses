@@ -275,6 +275,7 @@
 <script>
 const SUPABASE_URL = 'https://mdqzseflgmesziiwhdif.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1kcXpzZWZsZ21lc3ppaXdoZGlmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA0NjYzMzgsImV4cCI6MjA5NjA0MjMzOH0.f8xnZ-dxxbg-PY6Ev-5sOi_EyoV3FHfaybSWyR3rZ-4';
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbxLgU9etuz4aaD_BKhSVoYQGzFS3PCKWnDuhNB-6UTtasQku_fgp5SVAU34jYau3aMYFw/exec';
 
 const STORE_COLORS = { '本店': '#ec4899', '2号店': '#8b5cf6', '共通': '#0ea5e9' };
 const CATEGORIES = ['材料・仕入れ','固定費','人件費','広告費','備品・消耗品','研修・セミナー','その他'];
@@ -500,6 +501,18 @@ async function addExpense() {
     const toast = document.getElementById('add-toast');
     toast.style.display = 'block';
     setTimeout(() => toast.style.display = 'none', 2000);
+
+    // Googleスプレッドシートにバックアップ
+    try {
+      await fetch(GAS_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+    } catch(e) {
+      console.log('バックアップエラー:', e);
+    }
   } else {
     const err = document.getElementById('add-error');
     err.textContent = '❌ 保存に失敗しました';
