@@ -293,7 +293,8 @@ async function api(method, path, body) {
       'apikey': SUPABASE_KEY,
       'Authorization': 'Bearer ' + SUPABASE_KEY,
       'Content-Type': 'application/json',
-      'Prefer': method === 'POST' ? 'return=representation' : 'return=minimal'
+      'Accept': 'application/json',
+      'Prefer': method === 'POST' ? 'return=representation' : (method === 'GET' ? undefined : 'return=minimal')
     },
     body: body ? JSON.stringify(body) : undefined
   });
