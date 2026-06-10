@@ -302,6 +302,11 @@ async function api(method, path, body) {
   return res;
 }
 
+function getLastDay(ym) {
+  const [y, m] = ym.split('-').map(Number);
+  return new Date(y, m, 0).getDate();
+}
+
 function getPrevMonth(ym) {
   const [y, m] = ym.split('-').map(Number);
   const d = new Date(y, m - 2, 1);
@@ -324,7 +329,7 @@ async function loadList() {
   document.getElementById('list-loading').style.display = 'block';
   document.getElementById('list-items').innerHTML = '';
 
-  let query = `expenses?date=gte.${month}-01&date=lte.${month}-31&order=date.desc`;
+  let query = `expenses?date=gte.${month}-01&date=lte.${month}-${String(getLastDay(month)).padStart(2,'0')}&order=date.desc`;
   if (store) query += `&store=eq.${encodeURIComponent(store)}`;
 
   const data = await api('GET', query);
@@ -369,13 +374,13 @@ async function loadSummary() {
   const [y, m] = month.split('-');
   document.getElementById('sum-month-label').textContent = `${y}年${Number(m)}月 合計`;
 
-  let q = `expenses?date=gte.${month}-01&date=lte.${month}-31`;
+  let q = `expenses?date=gte.${month}-01&date=lte.${month}-${String(getLastDay(month)).padStart(2,'0')}&order=date.desc`;
   if (store) q += `&store=eq.${encodeURIComponent(store)}`;
-  let qp = `expenses?date=gte.${prev}-01&date=lte.${prev}-31`;
+  let qp = `expenses?date=gte.${prev}-01&date=lte.${prev}-${String(getLastDay(prev)).padStart(2,'0')}`;
   if (store) qp += `&store=eq.${encodeURIComponent(store)}`;
-  let q6 = `expenses?date=gte.${getMonthsAgo(month,5)}-01&date=lte.${month}-31`;
+  let q6 = `expenses?date=gte.${getMonthsAgo(month,5)}-01&date=lte.${month}-${String(getLastDay(month)).padStart(2,'0')}&order=date.desc`;
   if (store) q6 += `&store=eq.${encodeURIComponent(store)}`;
-  let qAll = `expenses?date=gte.${month}-01&date=lte.${month}-31`;
+  let qAll = `expenses?date=gte.${month}-01&date=lte.${month}-${String(getLastDay(month)).padStart(2,'0')}&order=date.desc`;
 
   const [curr, prevData, trend, allStores] = await Promise.all([
     api('GET', q), api('GET', qp), api('GET', q6), api('GET', qAll)
@@ -565,7 +570,7 @@ async function saveEdit() {
 
 async function printPDF(store) {
   const month = document.getElementById('sum-month').value;
-  let q = `expenses?date=gte.${month}-01&date=lte.${month}-31&order=date.asc`;
+  let q = `expenses?date=gte.${month}-01&date=lte.${month}-${String(getLastDay(month)).padStart(2,'0')}&order=date.asc`;
   if (store) q += `&store=eq.${encodeURIComponent(store)}`;
   const data = await api('GET', q);
   const total = data.reduce((s,e) => s+e.amount, 0);
