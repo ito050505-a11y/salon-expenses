@@ -175,6 +175,18 @@
       <button class="btn-pdf" onclick="printPDF('')">📄 全体</button>
     </div>
   </div>
+
+  <!-- CSV出力 -->
+  <div class="section-card">
+    <div class="section-title" style="margin-bottom:8px;">📥 CSV出力</div>
+    <div style="font-size:12px;color:#9ca3af;margin-bottom:10px;text-align:center;">Excelで開けるCSVをダウンロードします</div>
+    <div class="pdf-grid">
+      <button class="btn-pdf" onclick="exportCSV('本店')">📥 本店</button>
+      <button class="btn-pdf" onclick="exportCSV('2号店')">📥 2号店</button>
+      <button class="btn-pdf" onclick="exportCSV('共通')">📥 共通</button>
+      <button class="btn-pdf" onclick="exportCSV('')">📥 全体</button>
+    </div>
+  </div>
 </div>
 
 <!-- 入力 -->
@@ -595,6 +607,57 @@ async function printPDF(store) {
     </body></html>
   `);
   win.document.close();
+}
+
+async function exportCSV(store) {
+  const month = document.getElementById('sum-month').value;
+  let q = `expenses?date=gte.${month}-01&date=lte.${month}-${String(getLastDay(month)).padStart(2,'0')}&order=date.asc`;
+  if (store) q += `&store=eq.${encodeURIComponent(store)}`;
+  const data = await api('GET', q);
+
+  if (!data.length) {
+    alert('該当データがありません');
+    return;
+  }
+
+  const label = store || '全体';
+  const [y, m] = month.split('-');
+
+  // ヘッダー行
+  const headers = ['日付', '店舗', 'カテゴリ', '金額', '支払方法', 'メモ'];
+  const rows = data.map(e => [
+    e.date,
+    e.store,
+    e.category,
+    e.amount,
+    e.payment_method,
+    (e.memo || '').replace(/"/g, '""') // ダブルクォートのエスケープ
+  ]);
+
+  // 合計行
+  const total = data.reduce((s, e) => s + e.amount, 0);
+  rows.push(['', '', '合計', total, '', '']);
+
+  // CSV文字列組み立て（カンマ・改行を含むセルは""で囲む）
+  const csvContent = [headers, ...rows]
+    .map(row => row.map(cell => {
+      const str = String(cell);
+      return /[",\n]/.test(str) ? `"${str}"` : str;
+    }).join(','))
+    .join('\r\n');
+
+  // BOM付きUTF-8にしてExcelで文字化けしないようにする
+  const bom = '\uFEFF';
+  const blob = new Blob([bom + csvContent], { type: 'text/csv;charset=utf-8;' });
+
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = `経費_${label}_${y}${m}.csv`;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
 }
 
 // 初期ロード
