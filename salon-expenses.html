@@ -99,7 +99,7 @@
 <!-- 一覧 -->
 <div id="tab-list" class="content active">
   <div class="filter-row">
-    <input type="month" id="list-month" value="2026-06" onchange="loadList()">
+    <input type="month" id="list-month" onchange="loadList()">
     <select id="list-store" onchange="loadList()">
       <option value="">全店舗</option>
       <option>本店</option>
@@ -122,7 +122,7 @@
 <!-- 集計 -->
 <div id="tab-summary" class="content">
   <div class="filter-row">
-    <input type="month" id="sum-month" value="2026-06" onchange="loadSummary()">
+    <input type="month" id="sum-month" onchange="loadSummary()">
     <select id="sum-store" onchange="loadSummary()">
       <option value="">全店舗</option>
       <option>本店</option>
@@ -196,7 +196,7 @@
     <div id="add-error" class="toast error"></div>
     <div class="form-group">
       <div class="form-label">日付</div>
-      <input type="date" id="f-date" class="form-input" value="2026-06-10">
+      <input type="date" id="f-date" class="form-input">
     </div>
     <div class="form-group">
       <div class="form-label">店舗</div>
@@ -661,6 +661,16 @@ async function exportCSV(store) {
 }
 
 // 初期ロード
+function setTodayDefaults() {
+  const d = new Date();
+  const pad = n => String(n).padStart(2, '0');
+  const todayStr = `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+  const monthStr = `${d.getFullYear()}-${pad(d.getMonth()+1)}`;
+  document.getElementById('list-month').value = monthStr;
+  document.getElementById('sum-month').value = monthStr;
+  document.getElementById('f-date').value = todayStr;
+}
+setTodayDefaults();
 loadList();
 </script>
 </body>
